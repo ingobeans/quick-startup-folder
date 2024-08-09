@@ -6,6 +6,8 @@ fn main() {
 
     for entry in paths {
         let path = entry.unwrap().path();
-        Command::new("cmd").args(["/C", "start", path.to_str().unwrap()]).spawn().unwrap();
+        let quotes_path = String::from("'") + path.to_str().unwrap() + "'";
+        let t = ["/C", "start", &quotes_path];
+        Command::new("powershell").args(t).spawn().unwrap();
     }
 }
