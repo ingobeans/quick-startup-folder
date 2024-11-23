@@ -1,4 +1,4 @@
 # Quick Startup Folder
 
 An alternative to the slow Windows startup folder.
-Compile and add the exe to Task Scheduler, and put your programs in a 'startup' folder in the same directory.
+Manually running the exe (run with admin) will make it task schedule itself to run immediately on login. That's all the setup you need!

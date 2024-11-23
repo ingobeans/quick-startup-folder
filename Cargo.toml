@@ -4,3 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+dont_disappear = "3.0.1"
+libc = "0.2.164"
+winapi = { version = "0.3.9", features = ["winuser", "handleapi", "processthreadsapi", "securitybaseapi"] }
