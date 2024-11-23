@@ -5,48 +5,36 @@ use std::io::Write;
 use std::process::Command;
 mod has_admin;
 
-fn task_exists() -> bool {
-    let output = Command::new("cmd")
-        .args(["/C", "schtasks", "/Query", "/TN", "QuickStartupFolder"])
-        .output();
+fn run_command(args: &[&str]) -> bool {
+    let output = Command::new("cmd").args(args).output();
 
     match output {
-        Ok(output) => {
-            return output.status.success();
-        }
-        Err(_) => {
-            return false;
-        }
+        Ok(output) => output.status.success(),
+        Err(_) => false,
     }
+}
+
+fn task_exists() -> bool {
+    run_command(&["/C", "schtasks", "/Query", "/TN", "QuickStartupFolder"])
 }
 
 fn create_task() -> bool {
     let exe_path = env::current_exe().expect("failed getting path to exe");
     let exe_path = exe_path.to_string_lossy();
-    let output = Command::new("cmd")
-        .args([
-            "/C",
-            "schtasks",
-            "/create",
-            "/tn",
-            "QuickStartupFolder",
-            "/tr",
-            &format!("{exe_path} run"),
-            "/sc",
-            "onlogon",
-            "/ru",
-            "%USERDOMAIN%\\%USERNAME%",
-            "/f",
-        ])
-        .output();
-    match output {
-        Ok(output) => {
-            return output.status.success();
-        }
-        Err(_) => {
-            return false;
-        }
-    }
+    run_command(&[
+        "/C",
+        "schtasks",
+        "/create",
+        "/tn",
+        "QuickStartupFolder",
+        "/tr",
+        &format!("{exe_path} run"),
+        "/sc",
+        "onlogon",
+        "/ru",
+        "%USERDOMAIN%\\%USERNAME%",
+        "/f",
+    ])
 }
 
 fn get_yn_prompt(text: &str) -> bool {
