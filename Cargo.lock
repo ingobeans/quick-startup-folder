@@ -195,7 +195,7 @@ dependencies = [
 
 [[package]]
 name = "quick-startup-folder"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "dont_disappear",
  "libc",
