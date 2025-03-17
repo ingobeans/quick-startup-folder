@@ -1,9 +1,15 @@
 [package]
 name = "quick-startup-folder"
-version = "0.1.0"
+version = "0.2.2"
 edition = "2021"
 
 [dependencies]
 dont_disappear = "3.0.1"
 libc = "0.2.164"
-winapi = { version = "0.3.9", features = ["winuser", "handleapi", "processthreadsapi", "securitybaseapi"] }
+opener = "0.7.2"
+winapi = { version = "0.3.9", features = [
+    "winuser",
+    "handleapi",
+    "processthreadsapi",
+    "securitybaseapi",
+] }

@@ -92,15 +92,12 @@ fn main() {
         let exe_dir = exe_path.parent().expect("failed to get parent directory");
         let startup_path = exe_dir.join("startup");
         let startup_path = startup_path.to_string_lossy().to_string();
-        println!("{startup_path}");
 
         let paths = fs::read_dir(startup_path).unwrap();
 
         for entry in paths {
             let path = entry.unwrap().path();
-            let quotes_path = String::from("'") + path.to_str().unwrap() + "'";
-            let t = ["/C", "start", &quotes_path];
-            Command::new("powershell").args(t).spawn().unwrap();
+            opener::open(path.to_str().unwrap()).unwrap();
         }
     } else {
         setup_task();
