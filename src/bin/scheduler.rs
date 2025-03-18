@@ -1,10 +1,9 @@
-#![windows_subsystem = "windows"]
-
 use std::env;
-use std::fs;
 use std::io;
 use std::io::Write;
 use std::process::Command;
+
+#[path = "../has_admin.rs"]
 mod has_admin;
 
 fn run_command(args: &[&str]) -> bool {
@@ -20,9 +19,19 @@ fn task_exists() -> bool {
     run_command(&["/C", "schtasks", "/Query", "/TN", "QuickStartupFolder"])
 }
 
+fn get_path_to_binary() -> String {
+    let self_path = env::current_exe().expect("failed getting own path");
+    let parent = self_path.parent().unwrap();
+    let binary_path = parent.join("quick-startup-folder.exe");
+    if !binary_path.exists() {
+        println!("error: 'quick-startup-folder.exe' is not present in the same directory");
+        std::process::exit(0);
+    }
+    binary_path.to_string_lossy().to_string()
+}
+
 fn create_task() -> bool {
-    let exe_path = env::current_exe().expect("failed getting path to exe");
-    let exe_path = exe_path.to_string_lossy();
+    let exe_path = get_path_to_binary();
     run_command(&[
         "/C",
         "schtasks",
@@ -55,6 +64,10 @@ fn get_yn_prompt(text: &str) -> bool {
     };
 }
 
+fn dont_exit() {
+    dont_disappear::any_key_to_continue::custom_msg("press any key to close...");
+}
+
 fn setup_task() {
     let task_exists = task_exists();
     if !task_exists {
@@ -67,7 +80,7 @@ fn setup_task() {
     let admin = has_admin::is_elevated();
     if !admin {
         println!("you gotta run this with admin to setup scheduled task!");
-        dont_disappear::any_key_to_continue::custom_msg("press any key to close...");
+        dont_exit();
         return;
     }
     let input = get_yn_prompt("do you want to add this as a scheduled task?");
@@ -79,29 +92,13 @@ fn setup_task() {
         } else {
             println!("error: couldn't schedule task!")
         }
-        dont_disappear::any_key_to_continue::custom_msg("press any key to close...");
+        dont_exit();
     } else {
         println!("ok fine..");
-        dont_disappear::any_key_to_continue::custom_msg("press any key to close...");
+        dont_exit();
     }
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    if args.len() == 2 && args[1] == "run" {
-        let exe_path = env::current_exe().expect("failed getting path to exe");
-        let exe_dir = exe_path.parent().expect("failed to get parent directory");
-        let startup_path = exe_dir.join("startup");
-        let startup_path = startup_path.to_string_lossy().to_string();
-
-        let paths = fs::read_dir(startup_path).unwrap();
-
-        for entry in paths {
-            let path = entry.unwrap().path();
-            opener::open(path.to_str().unwrap()).unwrap();
-        }
-    } else {
-        setup_task();
-    }
+    setup_task();
 }
