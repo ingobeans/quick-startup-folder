@@ -1,4 +1,4 @@
 # Quick Startup Folder
 
 An alternative to the slow Windows startup folder.
-Manually running the exe (run with admin) will make it task schedule itself to run immediately on login. That's all the setup you need!
+Run `scheduler.exe` with admin and it will schedule `quick-startup-folder.exe` (should be contained in the same directory) to be ran at startup. That's all the setup you need!

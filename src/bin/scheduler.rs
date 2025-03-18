@@ -1,7 +1,12 @@
 use std::env;
 use std::io;
+use std::io::stdout;
 use std::io::Write;
 use std::process::Command;
+
+use crossterm::queue;
+use crossterm::style::Color;
+use crossterm::style::SetForegroundColor;
 
 #[path = "../has_admin.rs"]
 mod has_admin;
@@ -47,6 +52,16 @@ fn create_task() -> bool {
         "/f",
     ])
 }
+fn remove_task() -> bool {
+    run_command(&[
+        "/C",
+        "schtasks",
+        "/delete",
+        "/tn",
+        "QuickStartupFolder",
+        "/f",
+    ])
+}
 
 fn get_yn_prompt(text: &str) -> bool {
     print!("{text} (y/n): ");
@@ -64,41 +79,57 @@ fn get_yn_prompt(text: &str) -> bool {
     };
 }
 
-fn dont_exit() {
+fn dont_exit() -> ! {
     dont_disappear::any_key_to_continue::custom_msg("press any key to close...");
-}
-
-fn setup_task() {
-    let task_exists = task_exists();
-    if !task_exists {
-        println!("quick startup folder is not a scheduled task.");
-    } else {
-        println!(
-            "quick startup folder is already a scheduled task, doing this will update/reset the task."
-        )
-    }
-    let admin = has_admin::is_elevated();
-    if !admin {
-        println!("you gotta run this with admin to setup scheduled task!");
-        dont_exit();
-        return;
-    }
-    let input = get_yn_prompt("do you want to add this as a scheduled task?");
-    if input {
-        println!("attempting to schedule...");
-        let result = create_task();
-        if result {
-            println!("success! quick startup folder is now setup and will run everything from the startup folder on login!")
-        } else {
-            println!("error: couldn't schedule task!")
-        }
-        dont_exit();
-    } else {
-        println!("ok fine..");
-        dont_exit();
-    }
+    std::process::exit(0);
 }
 
 fn main() {
-    setup_task();
+    let task_exists = task_exists();
+    print!("* quick-startup-folder status: ",);
+    if task_exists {
+        queue!(stdout(), SetForegroundColor(Color::Green)).unwrap();
+        println!("SCHEDULED")
+    } else {
+        queue!(stdout(), SetForegroundColor(Color::Red)).unwrap();
+        println!("NOT SCHEDULED")
+    }
+    queue!(stdout(), SetForegroundColor(Color::Reset)).unwrap();
+    let admin = has_admin::is_elevated();
+    print!("* has admin: ");
+    if admin {
+        queue!(stdout(), SetForegroundColor(Color::Green)).unwrap();
+        println!("YES")
+    } else {
+        queue!(stdout(), SetForegroundColor(Color::Red)).unwrap();
+        println!("NO")
+    }
+    println!("");
+    queue!(stdout(), SetForegroundColor(Color::Reset)).unwrap();
+    if !admin {
+        println!("this tool needs admin to run");
+        dont_exit();
+    }
+    let success: bool;
+    if !task_exists {
+        let input = get_yn_prompt("add quick-startup-folder as scheduled task?");
+        if input {
+            success = create_task();
+        } else {
+            return;
+        }
+    } else {
+        let input = get_yn_prompt("remove quick-startup-folder as scheduled task?");
+        if input {
+            success = remove_task();
+        } else {
+            return;
+        }
+    }
+    if success {
+        println!("success!")
+    } else {
+        println!("something failed :<")
+    }
+    dont_exit();
 }
